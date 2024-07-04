@@ -5,30 +5,38 @@ import java.util.List;
 import java.util.Random;
 
 public class FullyConnectedLayer extends Layer {
-    List<float[][]> weights;
+    double[][] weights;
 
     @Override
-    public void createRandomWeights(int rowNum, int colNum, int depthNum, int seed) {
-        weights = new ArrayList<>();
+    public void createRandomWeights(int inNum, int outNum, int seed) {
+        weights = new double[outNum][inNum];
         Random randomizer = new Random(seed);
-        for (int dep = 0; dep < depthNum; dep++) {
-            float[][] xy = new float[colNum][rowNum];
-            for (int col = 0; col < colNum; col++) {
-                for (int row = 0; row < rowNum; row++) {
-                    xy[col][row] = (float) randomizer.nextGaussian();
-                }
+        for (int out = 0; out < outNum; out++) {
+            for (int in = 0; in < inNum; in++) {
+                weights[out][in] = randomizer.nextGaussian();
             }
-            weights.add(xy);
         }
     }
 
     @Override
     public List<double[][]> feedForward(List<double[][]> dataIn) {
-        return List.of();
+        double[] vecData = matrixToVector(dataIn);
+        double[] outData = new double[weights[0].length * weights.length];
+        for (int outIndex = 0; outIndex < weights[0].length; outIndex++) {
+            for (int inIndex = 0; inIndex < weights.length; inIndex++) {
+                outData[outIndex] += vecData[inIndex] * weights[outIndex][inIndex];
+            }
+        }
+
+        List<double[][]> outList = new ArrayList<>();
+        double[][] outArray = new double[1][outData.length];
+        outArray[0] = outData;
+        outList.add(outArray);
+        return outList;
     }
 
     @Override
-    public void backProp(List<double[][]> dataIn) {
+    public void backProp(List<double[][]> deltas) {
 
     }
 }
