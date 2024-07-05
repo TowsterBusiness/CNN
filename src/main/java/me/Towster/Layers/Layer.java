@@ -16,6 +16,11 @@ public abstract class Layer {
         else return a;
     }
 
+    public double derivativeReLU(double a) {
+        if (a < 0) return 0;
+        return 1;
+    }
+
     public double[] matrixToVector(List<double[][]> inData) {
         List<Double> outDataList = new ArrayList<>();
         for (double[][] xy : inData) {
@@ -32,6 +37,14 @@ public abstract class Layer {
             i++;
         }
         return outData;
+    }
+
+    public List<double[][]> vectorToMatrix(double[] inData) {
+        List<double[][]> outList = new ArrayList<>();
+        double[][] outArray = new double[1][inData.length];
+        outArray[0] = inData;
+        outList.add(outArray);
+        return outList;
     }
 
     public Layer get_previousLayer() {
