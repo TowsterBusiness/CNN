@@ -7,7 +7,7 @@ public abstract class Layer {
     protected Layer _previousLayer;
     protected Layer _nextLayer;
 
-    public abstract void createRandomWeights(int row, int col, int seed);
+    public abstract void createRandomWeights(int seed);
     public abstract List<double[][]> feedForward(List<double[][]> dataIn);
     public abstract void backProp(List<double[][]> dataIn);
 

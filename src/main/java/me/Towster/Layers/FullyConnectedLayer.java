@@ -8,11 +8,21 @@ public class FullyConnectedLayer extends Layer {
     double[][] weights;
     double[] lastZ;
     double[] previousLayerLastZ;
+
+    int inNum;
+    int outNum;
     double learningRate = 0.01;
 
-    @Override
-    public void createRandomWeights(int inNum, int outNum, int seed) {
+    public FullyConnectedLayer (int inNum, int outNum, double learningRate) {
+        this.inNum = inNum;
+        this.outNum = outNum;
+        this.learningRate = learningRate;
+
         weights = new double[outNum][inNum];
+    }
+
+    @Override
+    public void createRandomWeights(int seed) {
         Random randomizer = new Random(seed);
         for (int out = 0; out < outNum; out++) {
             for (int in = 0; in < inNum; in++) {
@@ -25,9 +35,9 @@ public class FullyConnectedLayer extends Layer {
     public List<double[][]> feedForward(List<double[][]> dataIn) {
         double[] vecData = matrixToVector(dataIn);
         previousLayerLastZ = vecData;
-        double[] outData = new double[weights[0].length * weights.length];
-        for (int outIndex = 0; outIndex < weights[0].length; outIndex++) {
-            for (int inIndex = 0; inIndex < weights.length; inIndex++) {
+        double[] outData = new double[inNum * outNum];
+        for (int outIndex = 0; outIndex < inNum; outIndex++) {
+            for (int inIndex = 0; inIndex < outNum; inIndex++) {
                 outData[outIndex] += vecData[inIndex] * weights[outIndex][inIndex];
             }
         }
@@ -41,11 +51,11 @@ public class FullyConnectedLayer extends Layer {
     @Override
     public void backProp(List<double[][]> deltas) {
         double[] deltaVec = matrixToVector(deltas);
-        double[] dZdXList = new double[weights[0].length];
+        double[] dZdXList = new double[inNum];
 
-        for (int i = 0; i < weights[0].length; i++) {
+        for (int i = 0; i < inNum; i++) {
             double dLdX = 0;
-            for (int j = 0; j < weights.length; j++) {
+            for (int j = 0; j < outNum; j++) {
                 double dRdZ = derivativeReLU(lastZ[j]);
                 double dZdW = previousLayerLastZ[i];
                 double dZdX = weights[i][j];
