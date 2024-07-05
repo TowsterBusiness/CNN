@@ -5,61 +5,43 @@ import java.util.List;
 import java.util.Random;
 
 public class PoolingLayer extends Layer {
-    List<double[][]> weights;
-    int filterWidth;
-    int filterHeight;
-    int depth;
-
-    public PoolingLayer(int filterWidth, int filterHeight, int depth) {
-        this.filterWidth = filterWidth;
-        this.filterHeight = filterHeight;
-        this.depth = depth;
-
-        weights = new ArrayList<>();
-        for (int depIndex = 0; depIndex < depth; depIndex ++) {
-            double[][] filter = new double[filterHeight][filterWidth];
-            weights.add(filter);
-        }
+    int poolWidth, poolHeight;
+    public PoolingLayer(int poolWidth, int poolHeight) {
+        this.poolWidth = poolWidth;
+        this.poolHeight = poolHeight;
     }
 
     @Override
     public void createRandomWeights(int seed) {
-        Random randomizer = new Random(seed);
-        for (double[][] xy : weights) {
-            for (int y = 0; y < filterHeight; y++) {
-                for (int x = 0; x < filterWidth; x++) {
-                    xy[y][x] = randomizer.nextGaussian();
-                }
-            }
-        }
+
     }
 
     @Override
     public List<double[][]> feedForward(List<double[][]> dataIn) {
-        List<double[][]> outData = new ArrayList<>();
-        for (int dataInPointer = 0; dataInPointer < dataIn.size(); dataInPointer++) {
-            double[][] dataInXY = dataIn.get(dataInPointer);
-            double[][] outXY = new double[dataInXY[0].length - filterHeight][dataInXY.length - filterHeight];
-            for (int yPointer = 0; yPointer < dataInXY[0].length - filterHeight; yPointer ++) {
-                for (int xPointer = 0; xPointer < dataInXY.length - filterHeight; xPointer ++) {
-                    double outSum = 0;
-                    for (int filterY = 0; filterY < filterHeight; filterY++) {
-                        for (int filterX = 0; filterX < filterWidth; filterX++) {
-                            outSum += dataInXY[yPointer + filterY][xPointer + filterX]
-                                    * weights.get(dataInPointer)[filterY][filterX];
+        List<double[][]> outList = new ArrayList<>();
+
+        for (int depIndex = 0; depIndex < dataIn.size(); depIndex++) {
+
+            double[][] outXY = new double[dataIn.getFirst()[0].length - poolHeight]
+                    [dataIn.getFirst().length - poolWidth];
+            for (int slideX = 0; slideX < dataIn.getFirst()[0].length - poolHeight; slideX++) {
+                for (int slideY = 0; slideY < dataIn.getFirst().length - poolWidth; slideY++) {
+                    double max = 0;
+                    for (int yIndex = 0; yIndex < poolHeight; yIndex++) {
+                        for (int xIndex = 0; xIndex < poolWidth; xIndex++) {
+                            max = Math.max(dataIn.get(depIndex)[yIndex + slideY][xIndex + slideX], max);
                         }
                     }
-                    outSum /= filterHeight * filterWidth;
-                    outXY[yPointer][xPointer] = ReLU(outSum);
+                    outXY[slideY][slideX] = max;
                 }
             }
-            outData.add(outXY);
+            outList.add(outXY);
         }
 
         if (_nextLayer != null) {
-            return _nextLayer.feedForward(outData);
+            return _nextLayer.feedForward(outList);
         }
-        return outData;
+        return outList;
     }
 
     @Override
