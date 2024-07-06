@@ -50,9 +50,9 @@ public class ConvolutionalLayer extends Layer {
         for (int dataInPointer = 0; dataInPointer < dataIn.size(); dataInPointer++) {
             for (int outWeightIndex = 0; outWeightIndex < outDepth; outDepth++) {
                 double[][] dataInXY = dataIn.get(dataInPointer);
-                double[][] outXY = new double[dataInXY[0].length - filterHeight][dataInXY.length - filterHeight];
-                for (int yPointer = 0; yPointer < dataInXY[0].length - filterHeight; yPointer++) {
-                    for (int xPointer = 0; xPointer < dataInXY.length - filterHeight; xPointer++) {
+                double[][] outXY = new double[dataInXY.length - filterHeight][dataInXY[0].length - filterHeight];
+                for (int yPointer = 0; yPointer < dataInXY.length - filterHeight; yPointer++) {
+                    for (int xPointer = 0; xPointer < dataInXY[0].length - filterHeight; xPointer++) {
                         double outSum = 0;
                         for (int filterY = 0; filterY < filterHeight; filterY++) {
                             for (int filterX = 0; filterX < filterWidth; filterX++) {
