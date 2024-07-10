@@ -10,12 +10,16 @@ public class ConvolutionalLayer extends Layer {
     int filterHeight;
     int inDepth;
     int outDepth;
+    double learningRate = 0.01;
+    List<double[][]> pastZ;
+    List<double[][]> pastA;
 
-    public ConvolutionalLayer(int filterWidth, int filterHeight, int inDepth, int outDepth) {
+    public ConvolutionalLayer(int filterWidth, int filterHeight, int inDepth, int outDepth, double learningRate) {
         this.filterWidth = filterWidth;
         this.filterHeight = filterHeight;
         this.inDepth = inDepth;
         this.outDepth = outDepth;
+        this.learningRate = learningRate;
 
         weights = new ArrayList<>();
         for (int depIndex = 0; depIndex < inDepth; depIndex ++) {
@@ -47,6 +51,8 @@ public class ConvolutionalLayer extends Layer {
     @Override
     public List<double[][]> feedForward(List<double[][]> dataIn) {
         List<double[][]> outData = new ArrayList<>();
+        //Check if dataIn has any data changes
+        pastA = dataIn;
         for (int dataInPointer = 0; dataInPointer < dataIn.size(); dataInPointer++) {
             for (int outWeightIndex = 0; outWeightIndex < outDepth; outDepth++) {
                 double[][] dataInXY = dataIn.get(dataInPointer);
@@ -69,6 +75,8 @@ public class ConvolutionalLayer extends Layer {
 
         }
 
+        pastZ = outData;
+
         if (_nextLayer != null) {
             return _nextLayer.feedForward(outData);
         }
@@ -77,6 +85,45 @@ public class ConvolutionalLayer extends Layer {
 
     @Override
     public void backProp(List<double[][]> dataIn) {
+        List<double[][]> dataOut = new ArrayList<>();
 
+        for (int depthInIndex = 0; depthInIndex < inDepth; depthInIndex++) {
+            double[][] dataOutLayer = new double[dataIn.getFirst()[0].length][dataIn.getFirst().length];
+
+            for (int depthOutIndex = 0; depthOutIndex < dataIn.size(); depthOutIndex++) {
+                int depthIndex = depthInIndex * depthOutIndex;
+                double[][] dataInLayer = dataIn.get(depthIndex);
+                double[][] filterLayer = weights.get(depthInIndex).get(depthOutIndex);
+
+
+                int filterMovesX = dataInLayer[0].length - filterLayer[0].length;
+                int filterMovesY = dataInLayer.length - filterLayer.length;
+
+                for (int filterYIndex = 0; filterYIndex < filterLayer.length; filterYIndex++) {
+                    for (int filterXIndex = 0; filterXIndex < filterLayer[0].length; filterXIndex++) {
+                        //It's a little scary using variables but in principle it should work
+                        for (int moveY = 0; moveY < filterMovesY; moveY++) {
+                            for (int moveX = 0; moveX < filterMovesX; moveX++) {
+                                double dLdY = dataInLayer[moveY][moveX];
+                                double dYdZ = derivativeReLU(pastZ.get(depthIndex)[moveY][moveX]);
+                                double dZdW = pastA.get(depthInIndex)[moveY + filterYIndex][moveX + filterXIndex];
+                                double dZdA = filterLayer[filterYIndex][filterXIndex];
+
+                                filterLayer[filterYIndex][filterXIndex] -= dLdY * dYdZ * dZdW * learningRate;
+                                dataOutLayer[moveY + filterYIndex][moveX + filterXIndex] += dLdY * dYdZ * dZdA;
+                            }
+                        }
+                    }
+                }
+                dataOut.add(dataInLayer);
+
+            }
+
+            dataOut.add(dataOutLayer);
+        }
+
+        if (_previousLayer != null) {
+            backProp(dataOut);
+        }
     }
 }
