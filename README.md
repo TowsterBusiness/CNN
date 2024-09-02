@@ -7,6 +7,8 @@ This project has 3 different convolutional layers which are:
 3. Max Layer
 Which can be changed the reconfigured easity in the main.java file
 
+![](ss.png)
+
 # How to use the project
 
 1. Install the [Oracle JDK](https://jdk.java.net/javafx22/)
